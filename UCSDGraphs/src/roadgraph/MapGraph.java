@@ -29,7 +29,7 @@ import util.GraphLoader;
  * @author UCSD MOOC development team
  * @author Lane Chasteen
  */
-public class MapGraph {
+public class MapGraph implements Graph {
 	//TODO: Add your member variables here in WEEK 3
 	//-- properties --//
 	private final Map<GeographicPoint, Set<Edge>> graph;
@@ -46,80 +46,8 @@ public class MapGraph {
 		numVertices = 0;
 		numEdges = 0;
 	}
-
-	//-- MapGraph methods --//
-	/**
-	 * Get the number of vertices (road intersections) in the graph
-	 * @return The number of vertices in the graph.
-	 */
-	public int getNumVertices() {	
-		return numVertices;
-	}
-
-	/**
-	 * Return the intersections, which are the vertices in this graph.
-	 * @return The vertices in this graph as GeographicPoints
-	 */
-	public Set<GeographicPoint> getVertices() {
-		Set<GeographicPoint> vertices = new HashSet<>();
-		vertices.addAll(graph.keySet());
-		return vertices;
-	}
-
-	/**
-	 * Get the number of road segments in the graph
-	 * @return The number of edges in the graph.
-	 */
-	public int getNumEdges() {
-		return numEdges;
-	}
-
-	/** 
-	 * Add a node corresponding to an intersection at a Geographic Point
-	 * If the location is already in the graph or null, this method does 
-	 * not change the graph.
-	 * @param location  The location of the intersection
-	 * @return true if a node was added, false if it was not (the node
-	 * was already in the graph, or the parameter is null).
-	 */
-	public boolean addVertex(GeographicPoint location) {
-		if (location == null || graph.containsKey(location)) {
-			return false;
-		}
-		graph.put(location, new HashSet<>());
-		numVertices++;
-		return true;
-	}
-
-	/**
-	 * Adds a directed edge to the graph from pt1 to pt2.  
-	 * Precondition: Both GeographicPoints have already been added to the graph
-	 * @param from The starting point of the edge
-	 * @param to The ending point of the edge
-	 * @param roadName The name of the road
-	 * @param roadType The type of the road
-	 * @param length The length of the road, in km
-	 * @throws IllegalArgumentException If the points have not already been
-	 *   added as nodes to the graph, if any of the arguments is null,
-	 *   or if the length is less than 0.
-	 */
-	public void addEdge(GeographicPoint from, 
-			GeographicPoint to, 
-			String roadName,
-			String roadType, 
-			double length) throws IllegalArgumentException {
-
-		if (from == null || to == null) {
-			throw new IllegalArgumentException("Unable to add edge to graph with a null starting or ending point.");
-		}
-		if (!this.graph.containsKey(from) || !this.graph.containsKey(to)) {
-			throw new IllegalArgumentException("Unable to find starting or ending refrence point.");
-		}
-		Edge e = new Edge(to, roadName, roadType, length);
-		this.graph.get(from).add(e);
-		numEdges++;
-	}
 	
+	//-- MapGraph methods --//
 	/**
 	 * Returns a {@link Set} of {@link GeographicPoint}(s) which represent the neighbors of the {@code vertex}.
 	 * @param vertex - {@link GeographicPoint} to get the neighbors of.
@@ -131,20 +59,6 @@ public class MapGraph {
 			result.add(e.getVertex());
 		}
 		return result;
-	}
-
-	/** Find the path from start to goal using breadth first search
-	 * 
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @return The list of intersections that form the shortest (unweighted)
-	 *   path from start to goal (including both start and goal).
-	 */
-	public List<GeographicPoint> bfs(GeographicPoint start, GeographicPoint goal) {
-		// Dummy variable for calling the search algorithms
-		// You do not need to change this method.
-		Consumer<GeographicPoint> temp = (x) -> {};
-		return bfs(start, goal, temp);
 	}
 	
 	/**
@@ -177,6 +91,106 @@ public class MapGraph {
 		return result;
 	}
 
+	//-- Graph methods --//
+	/**
+	 * Get the number of vertices (road intersections) in the graph
+	 * @return The number of vertices in the graph.
+	 */
+	@Override
+	public int getNumVertices() {	
+		return numVertices;
+	}
+
+	/**
+	 * Return the intersections, which are the vertices in this graph.
+	 * @return The vertices in this graph as GeographicPoints
+	 */
+	@Override
+	public Set<GeographicPoint> getVertices() {
+		Set<GeographicPoint> vertices = new HashSet<>();
+		vertices.addAll(graph.keySet());
+		return vertices;
+	}
+
+	/**
+	 * Get the number of road segments in the graph
+	 * @return The number of edges in the graph.
+	 */
+	@Override
+	public int getNumEdges() {
+		return numEdges;
+	}
+
+	/** 
+	 * Add a node corresponding to an intersection at a Geographic Point
+	 * If the location is already in the graph or null, this method does 
+	 * not change the graph.
+	 * @param location  The location of the intersection
+	 * @return true if a node was added, false if it was not (the node
+	 * was already in the graph, or the parameter is null).
+	 */
+	@Override
+	public boolean addVertex(GeographicPoint location) {
+		if (location == null || graph.containsKey(location)) {
+			return false;
+		}
+		graph.put(location, new HashSet<>());
+		numVertices++;
+		return true;
+	}
+
+	/**
+	 * Adds a directed edge to the graph from pt1 to pt2.  
+	 * Precondition: Both GeographicPoints have already been added to the graph
+	 * @param from The starting point of the edge
+	 * @param to The ending point of the edge
+	 * @param roadName The name of the road
+	 * @param roadType The type of the road
+	 * @param length The length of the road, in km
+	 * @throws IllegalArgumentException If the points have not already been
+	 *   added as nodes to the graph, if any of the arguments is null,
+	 *   or if the length is less than 0.
+	 */
+	@Override
+	public void addEdge(GeographicPoint from, 
+			GeographicPoint to, 
+			String roadName,
+			String roadType, 
+			double length) throws IllegalArgumentException {
+
+		if (from == null || to == null) {
+			throw new IllegalArgumentException("Unable to add edge to graph with a null starting or ending point.");
+		}
+		if (!this.graph.containsKey(from) || !this.graph.containsKey(to)) {
+			throw new IllegalArgumentException("Unable to find starting or ending refrence point.");
+		}
+		if (length < 0) {
+			throw new IllegalArgumentException("Edge length is invalid. Must be greater than or equal to zero.");
+		}
+		if (roadName == null || roadType == null) {
+			throw new IllegalArgumentException("Road name and or road type must not be null.");
+		}
+		
+		Edge e = new Edge(to, roadName, roadType, length);
+		this.graph.get(from).add(e);
+		numEdges++;
+	}
+
+	/** 
+	 * Find the path from start to goal using breadth first search
+	 * @param start The starting location
+	 * @param goal The goal location
+	 * @return The list of intersections that form the shortest (unweighted)
+	 *   path from start to goal (including both start and goal).
+	 */
+	@Override
+	public List<GeographicPoint> bfs(GeographicPoint start, GeographicPoint goal) {
+		// Dummy variable for calling the search algorithms
+		// You do not need to change this method.
+		Consumer<GeographicPoint> temp = (x) -> {};
+		return bfs(start, goal, temp);
+	}
+
 	/** 
 	 * Find the path from start to goal using breadth first search
 	 * @param start The starting location
@@ -186,6 +200,7 @@ public class MapGraph {
 	 *   path from start to goal (including both start and goal) or {@code null}
 	 *   if no path is found.
 	 */
+	@Override
 	public List<GeographicPoint> bfs(
 			GeographicPoint start, 
 			GeographicPoint goal, 
@@ -204,7 +219,7 @@ public class MapGraph {
 		while (!pointQueue.isEmpty()) {
 			GeographicPoint curr = pointQueue.remove();
 			if (curr.equals(goal)) {
-				return new ArrayList<>(getPathFrom(parentMap, start, goal));
+				return getPathFrom(parentMap, start, goal);
 			}
 			nodeSearched.accept(curr);
 			for (GeographicPoint n : getNeighbors(curr)) {
@@ -224,14 +239,14 @@ public class MapGraph {
 		return null;
 	}
 
-
-	/** Find the path from start to goal using Dijkstra's algorithm
-	 * 
+	/** 
+	 * Find the path from start to goal using Dijkstra's algorithm
 	 * @param start The starting location
 	 * @param goal The goal location
 	 * @return The list of intersections that form the shortest path from 
 	 *   start to goal (including both start and goal).
 	 */
+	@Override
 	public List<GeographicPoint> dijkstra(GeographicPoint start, GeographicPoint goal) {
 		// Dummy variable for calling the search algorithms
 		// You do not need to change this method.
@@ -239,14 +254,15 @@ public class MapGraph {
 		return dijkstra(start, goal, temp);
 	}
 
-	/** Find the path from start to goal using Dijkstra's algorithm
-	 * 
+	/** 
+	 * Find the path from start to goal using Dijkstra's algorithm
 	 * @param start The starting location
 	 * @param goal The goal location
 	 * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
 	 * @return The list of intersections that form the shortest path from 
 	 *   start to goal (including both start and goal).
 	 */
+	@Override
 	public List<GeographicPoint> dijkstra(GeographicPoint start, 
 			GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
@@ -258,27 +274,29 @@ public class MapGraph {
 		return null;
 	}
 
-	/** Find the path from start to goal using A-Star search
-	 * 
+	/** 
+	 * Find the path from start to goal using A-Star search
 	 * @param start The starting location
 	 * @param goal The goal location
 	 * @return The list of intersections that form the shortest path from 
 	 *   start to goal (including both start and goal).
 	 */
+	@Override
 	public List<GeographicPoint> aStarSearch(GeographicPoint start, GeographicPoint goal) {
 		// Dummy variable for calling the search algorithms
 		Consumer<GeographicPoint> temp = (x) -> {};
 		return aStarSearch(start, goal, temp);
 	}
 
-	/** Find the path from start to goal using A-Star search
-	 * 
+	/** 
+	 * Find the path from start to goal using A-Star search
 	 * @param start The starting location
 	 * @param goal The goal location
 	 * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
 	 * @return The list of intersections that form the shortest path from 
 	 *   start to goal (including both start and goal).
 	 */
+	@Override
 	public List<GeographicPoint> aStarSearch(GeographicPoint start, 
 			GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
