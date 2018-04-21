@@ -22,8 +22,15 @@ public class GeographicPoint extends Double {
                 other.getX(), other.getY());     
 	}
 	
-    
-    private double getDist(double lat1, double lon1, double lat2, double lon2)
+	/**
+	 * Returns the distance in kilometers of the two points.
+	 * @param lat1 - The latitude of the first point.
+	 * @param lon1 - The longitude of the first point.
+	 * @param lat2 - The latitude of the second point.
+	 * @param lon2 - The longitude of the second point.
+	 * @return The distance in kilometers of the two points.
+	 */
+    public static double getDist(double lat1, double lon1, double lat2, double lon2)
     {
     	int R = 6373; // radius of the earth in kilometres
     	double lat1rad = Math.toRadians(lat1);
