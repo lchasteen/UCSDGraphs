@@ -2,6 +2,11 @@ package roadgraph;
 
 import geography.GeographicPoint;
 
+/**
+ * A node describing a vertex in a graph.
+ * <br><br>
+ * @author Lane Chasteen
+ */
 public class Node {
 	//-- properties --//
 	private final double latitude;
@@ -16,6 +21,22 @@ public class Node {
 	public Node(double latitude, double longitude) {
 		this.latitude = latitude;
 		this.longitude = longitude;
+	}
+	
+	/**
+	 * Creates a new Node.
+	 * @param point - {@link GeographicPoint} to create from.
+	 */
+	public Node(GeographicPoint point) {
+		this(point.getX(), point.getY());
+	}
+	
+	/**
+	 * Copy constructor. Creates a new Node.
+	 * @param n - {@link Node} to copy.
+	 */
+	public Node(Node n) {
+		this(n.getLatitude(), n.getLongitude());
 	}
 
 	//-- Node methods --//
@@ -45,6 +66,10 @@ public class Node {
 	public double getLongitude() {
 		return this.longitude;
 	}
+	
+	public GeographicPoint getGeographicPoint() {
+		return new GeographicPoint(latitude, longitude);
+	}
 
 	//-- Object methods --//
 	@Override
@@ -54,10 +79,9 @@ public class Node {
 	
 	@Override
 	public int hashCode() {
-		int result = 37;
-		result = 31 * result + Double.hashCode(latitude);
-		result = 31 * result + Double.hashCode(longitude);
-		return result;
+		long bits = java.lang.Double.doubleToLongBits(latitude);
+		bits ^= java.lang.Double.doubleToLongBits(longitude) * 31;
+		return (((int) bits) ^ ((int) (bits >> 32)));
 	}
 	
 	@Override
@@ -70,7 +94,6 @@ public class Node {
 		}
 		
 		Node n = (Node) o;
-		return n.latitude == latitude && n.longitude == longitude;
+		return (Double.compare(n.latitude, latitude) == 0) && (Double.compare(n.longitude, longitude) == 0);
 	}
-
 }

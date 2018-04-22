@@ -12,21 +12,19 @@ import geography.GeographicPoint;
 public final class Edge {
 
 	//-- properties --//
-	private final GeographicPoint vertex;
+	private final PriorityNode vertex;
 	private final String roadName;
 	private final String roadType;
-	private final double length;
 
 	//-- constructors --//
 	/**
 	 * Creates a new Edge.
-	 * @param vertex - The ending reference point.
+	 * @param vertex - {@link PriorityNode} ending reference point.
 	 * @param roadName - The name of the road.
 	 * @param roadType - The road type.
-	 * @param length - The length from the starting point to the internal vertex.
 	 * @throws IllegalArgumentException if vertex, roadName, or roadType is {@code null}.
 	 */
-	public Edge(GeographicPoint vertex, String roadName, String roadType, double length) throws IllegalArgumentException {
+	public Edge(PriorityNode vertex, String roadName, String roadType) throws IllegalArgumentException {
 		if (vertex == null) {
 			throw new IllegalArgumentException("Unable to create a new " 
 					+ Edge.class.getSimpleName() 
@@ -41,15 +39,14 @@ public final class Edge {
 		this.vertex = vertex;
 		this.roadName = roadName;
 		this.roadType = roadType;
-		this.length = length;
 	}
 
 	//-- Edge methods --//
 	/**
-	 * Returns the {@link GeographicPoint} as the vertex reference.
-	 * @return {@link GeographicPoint} as the vertex reference.
+	 * Returns the {@link Node} as the vertex reference.
+	 * @return {@link Node} as the vertex reference.
 	 */
-	public GeographicPoint getVertex() {
+	public PriorityNode getVertex() {
 		return vertex;
 	}
 
@@ -68,17 +65,7 @@ public final class Edge {
 	public String getRoadType() {
 		return roadType;
 	}
-
-	/**
-	 * Returns the distance in KM between the {@code vertex} and
-	 * the parent.
-	 * @return The distance in KM between the {@code vertex} and 
-	 * the parent.
-	 */
-	public double getLength() {
-		return length;
-	}
-
+	
 	//-- Object methods --//
 	@Override
 	public boolean equals(Object o) {

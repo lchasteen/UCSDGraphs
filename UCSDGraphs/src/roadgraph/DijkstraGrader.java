@@ -105,7 +105,7 @@ public class DijkstraGrader implements Runnable {
     }
 
     /** Print a search path in readable form */
-    public String printPath(List<GeographicPoint> path) {
+    public static String printPath(List<GeographicPoint> path) {
         String ret = "";
         for (GeographicPoint point : path) {
             ret += point + "\n";
