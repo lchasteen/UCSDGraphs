@@ -12,42 +12,68 @@ import geography.GeographicPoint;
 public final class Edge {
 
 	//-- properties --//
-	private final PriorityNode vertex;
+	private final Node node;
 	private final String roadName;
 	private final String roadType;
+	private final double length;
 
 	//-- constructors --//
 	/**
 	 * Creates a new Edge.
-	 * @param vertex - {@link PriorityNode} ending reference point.
+	 * @param node - {@link Node} reference point.
 	 * @param roadName - The name of the road.
 	 * @param roadType - The road type.
+	 * @param length - The length from the starting point to the internal vertex.
 	 * @throws IllegalArgumentException if vertex, roadName, or roadType is {@code null}.
 	 */
-	public Edge(PriorityNode vertex, String roadName, String roadType) throws IllegalArgumentException {
-		if (vertex == null) {
+	public Edge(Node node, String roadName, String roadType, double length) throws IllegalArgumentException {
+		if (node == null) {
 			throw new IllegalArgumentException("Unable to create a new " 
 					+ Edge.class.getSimpleName() 
-					+ " with a null " 
-					+ GeographicPoint.class.getSimpleName());
+					+ " with a null vertex.");
 		}
 		if (roadName == null || roadType == null) {
 			throw new IllegalArgumentException("Unable to create a new " 
 					+ Edge.class.getSimpleName() 
 					+ " with a null road name or road type.");
 		}
-		this.vertex = vertex;
+		if (length < 0) {
+			throw new IllegalArgumentException("Unable to create a new " 
+					+ Edge.class.getSimpleName() 
+					+ ". The road length must be greater than or equal to zero");
+		}
+		
+		this.node = node;
 		this.roadName = roadName;
 		this.roadType = roadType;
+		this.length = length;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param edge - {@link Edge} to copy.
+	 */
+	public Edge(Edge edge) {
+		this(new Node(edge.getNode()), edge.getRoadName(), edge.getRoadType(), edge.getLength());
 	}
 
 	//-- Edge methods --//
 	/**
-	 * Returns the {@link Node} as the vertex reference.
-	 * @return {@link Node} as the vertex reference.
+	 * Returns the {@link Node} reference point.
+	 * @return The {@link Node} reference point.
 	 */
-	public PriorityNode getVertex() {
-		return vertex;
+	public Node getNode() {
+		return node;
+	}
+	
+	/**
+	 * Returns the distance in KM between the {@code vertex} and
+	 * the parent.
+	 * @return The distance in KM between the {@code vertex} and 
+	 * the parent.
+	 */
+	public double getLength() {
+		return length;
 	}
 
 	/**
@@ -77,7 +103,7 @@ public final class Edge {
 		}
 		Edge e = (Edge) o;
 
-		return e.vertex.equals(vertex)
+		return e.getNode().equals(node)
 				&& e.roadName.equals(roadName) 
 				&& e.roadType.equals(roadType);
 	}
@@ -85,7 +111,7 @@ public final class Edge {
 	@Override
 	public int hashCode() {
 		int result = 37;
-		result = 31 * result + vertex.hashCode();
+		result = 31 * result + node.hashCode();
 		result = 31 * result + roadName.hashCode();
 		result = 31 * result + roadType.hashCode();
 		return result;

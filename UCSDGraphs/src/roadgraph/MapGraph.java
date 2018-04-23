@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
@@ -31,9 +32,8 @@ import util.GraphLoader;
  * @author Lane Chasteen
  */
 public class MapGraph implements Graph {
-	//TODO: Add your member variables here in WEEK 3
 	//-- properties --//
-	private final Map<Node, Set<Edge>> graph;
+	private final Map<PriorityNode, Set<Edge>> graph;
 	private int numVertices;
 	private int numEdges;
 
@@ -57,7 +57,7 @@ public class MapGraph implements Graph {
 	private Set<Node> getNeighbors(Node vertex) {
 		Set<Node> result = new HashSet<>();
 		for (Edge e : graph.get(vertex)) {
-			result.add(e.getVertex().getNode());
+			result.add(e.getNode());
 		}
 		return result;
 	}
@@ -67,8 +67,39 @@ public class MapGraph implements Graph {
 	 * @param vertex - {@link Node} to get the neighbors of.
 	 * @return {@link Set} of {@link Edge}(s) which represent the neighbors of the {@code vertex}.
 	 */
-	private Set<Edge> getEdgesNotVisited(Node vertex) {
+	private Set<Edge> getEdges(Node vertex) {
 		return graph.get(vertex);
+	}
+	
+	/**
+	 * Returns a {@link List} of {@link GeographicPoint}(s) from start to end based
+	 * on the {@code parentMap}. Precondition: {@code parentMap} must be ordered from
+	 * the breath-first search with the child vertex as the key and the parent vertex
+	 * is the value. 
+	 * @param parentMap - {@link Map} of {@link PriorityNode}(s) from the search.
+	 * @param start - {@link Node} starting point.
+	 * @param goal - {@link Node} ending point.
+	 * @return {@link List} of {@link GeographicPoint}(s) from start to end based
+	 * on the {@code parentMap} or an empty list.
+	 */
+	private List<GeographicPoint> getPathFromPriorityMap(
+			Map<PriorityNode, PriorityNode> parentMap, 
+			Node start, 
+			Node goal) {
+		List<GeographicPoint> result = new ArrayList<>();
+		// Start in reverse.
+		Node curr = goal;
+		do {
+			result.add(curr.getGeographicPoint());
+		} 
+		while ((curr = parentMap.get(curr)) != null);
+		// add the start point
+		
+		if (!result.isEmpty()) {
+			// Reverse so start is first and goal is last.
+			Collections.reverse(result);
+		}
+		return result;
 	}
 	
 	/**
@@ -101,7 +132,7 @@ public class MapGraph implements Graph {
 		}
 		return result;
 	}
-
+	
 	//-- Graph methods --//
 	/**
 	 * Get the number of vertices (road intersections) in the graph
@@ -138,7 +169,7 @@ public class MapGraph implements Graph {
 	 * Add a node corresponding to an intersection at a Geographic Point
 	 * If the location is already in the graph or null, this method does 
 	 * not change the graph.
-	 * @param location  The location of the intersection
+	 * @param location -  The location of the intersection
 	 * @return true if a node was added, false if it was not (the node
 	 * was already in the graph, or the parameter is null).
 	 */
@@ -148,7 +179,7 @@ public class MapGraph implements Graph {
 			return false;
 		}
 		// Vertex nodes must be unique in the graph.
-		Node n = new Node(location);
+		PriorityNode n = new PriorityNode(location);
 		if (graph.containsKey(n)) {
 			return false;
 		}
@@ -162,10 +193,9 @@ public class MapGraph implements Graph {
 	 * Precondition: Both GeographicPoints have already been added to the graph
 	 * @param from The starting point of the edge
 	 * @param to The ending point of the edge
-	 * @param roadName The name of the road
-	 * @param roadType The type of the road
-	 * @param length The lengtimport roadgraph.Node.PriorityNode;
-h of the road, in km
+	 * @param roadName - The name of the road
+	 * @param roadType - The type of the road
+	 * @param length - Distance from {@code from} to {@code to} in kilometers.
 	 * @throws IllegalArgumentException If the points have not already been
 	 *   added as nodes to the graph, if any of the arguments is null,
 	 *   or if the length is less than 0.
@@ -188,11 +218,11 @@ h of the road, in km
 		}
 		Node nFrom = new Node(from);
 		Node nTo = new Node(to);
-		if (!this.graph.containsKey(nFrom) || !this.graph.containsKey(nTo)) {
+		if (!graph.containsKey(nFrom) || !graph.containsKey(nTo)) {
 			throw new IllegalArgumentException("Unable to find starting or ending refrence point.");
 		}
 		
-		Edge e = new Edge(new PriorityNode(nTo, 0, length), roadName, roadType);
+		Edge e = new Edge(new Node(nTo), roadName, roadType, length);
 		
 		graph.get(nFrom).add(e);
 		numEdges++;
@@ -280,11 +310,11 @@ h of the road, in km
 
 	/** 
 	 * Find the path from start to goal using Dijkstra's algorithm
-	 * @param start The starting location
-	 * @param goal The goal location
-	 * @param nodeSearched A hook for visualization.  See assignment instructions for how to use it.
+	 * @param start - The starting location
+	 * @param goal - The goal location
+	 * @param nodeSearched - A hook for visualization.  See assignment instructions for how to use it.
 	 * @return The list of intersections that form the shortest path from 
-	 *   start to goal (including both start and goal).
+	 * start to goal (including both start and goal).
 	 */
 	@Override
 	public List<GeographicPoint> dijkstra(GeographicPoint start, 
@@ -300,50 +330,66 @@ h of the road, in km
 		Node nStart = new Node(start);
 		Node nGoal = new Node(goal);
 		Set<Node> visited = new HashSet<>();
-		Map<Node, Node> parentMap = new HashMap<>();
+		Map<PriorityNode, PriorityNode> parentMap = new HashMap<>();
+		
 		PriorityQueue<PriorityNode> pointQueue = new PriorityQueue<PriorityNode>(10, (o1, o2) -> {
 			//return o1 == null ? (o2 == null ? 0 : -1) : (o2 == null ? 1 : Double.compare(o1.getWeight(), o2.getWeight()));
 			return Double.compare(o1.getWeight(), o2.getWeight());
 		});
 
 		// Add the first element
-		pointQueue.add(new PriorityNode(nStart,0, 0));
+		pointQueue.add(new PriorityNode(nStart, -1));
 		
 		// Loop until empty.
 		while (!pointQueue.isEmpty()) {
-			PriorityNode pn = pointQueue.remove();
-			System.out.println("---- From queue: " + pn.getNode() + " weight: " + pn.getWeight());
-			Node curr = pn.getNode();
+			PriorityNode curr = pointQueue.remove();
 			if (!visited.contains(curr)) {
 				visited.add(curr);
 				if (curr.equals(nGoal)) {
-					return getPathFrom(parentMap, nStart, nGoal);
+					return getPathFromPriorityMap(parentMap, nStart, nGoal);
 				}
 				nodeSearched.accept(curr.getGeographicPoint());
-				for (Edge n : graph.get(curr)) {
-					PriorityNode en = n.getVertex();
-					if (visited.contains(en.getNode())) {
-						continue;
-					}
-					//System.out.println("Current length to next: " + Node.distance(pn.getNode(), en.getNode()) + " node N distance: " + en.getLength());
-//					if (en == null) {
-//						continue;
-//					}
-					
-					double v = pn.getWeight() + en.getLength();
-					System.out.println(en.getNode() + " pn.getWeight(): " + pn.getWeight() + " v: " + v + " en.getWeight(): " + en.getWeight());
-					if (v < en.getWeight() || en.getWeight() == 0) {
-						en.setWeight(v);
-						parentMap.put(en.getNode(), curr);
-						pointQueue.add(en);
-					}
-					else {
-						System.out.println("Otherwise: " + en.getWeight());
+				for (Edge nextEdge : getEdges(curr)) {
+					Node nextNeighbor = nextEdge.getNode();
+					if (nextNeighbor != null && !visited.contains(nextNeighbor)) {
+						double v = curr.getWeight() + nextEdge.getLength();
+						// Weight for the neighbor may not be set. Therefore do so.
+						double prevNeighborWeight = -1;
+						PriorityNode pointToAdd = null;
+						// Check out the parent map for any key matches which equal the next neighbor.
+						// Check out the weight of any neighbors which have already been tracked but
+						// are not marked as visited. Only replace the weight if the current calculated
+						// weight is lower.
+						if (parentMap.containsKey(nextNeighbor)) {
+							// TODO there is a better way to search. Improve performance in the future.
+							for (Entry<PriorityNode, PriorityNode> e : parentMap.entrySet()) {
+								if (e.getKey().equals(nextNeighbor)) {
+									pointToAdd = e.getKey();
+									break;
+								}
+							}
+							prevNeighborWeight = pointToAdd.getWeight();
+						}
+						// Check to see if this is a shorter path from current to this neighbor.
+						// Is it less than what has been found before?
+						if (v < prevNeighborWeight || prevNeighborWeight < 0) {
+							if (pointToAdd == null) {
+								// Add a new node.
+								pointToAdd = new PriorityNode(nextNeighbor, v);
+							}
+							else {
+								// Replace the weight.
+								pointToAdd.setWeight(v);
+							}
+							
+							parentMap.put(pointToAdd, curr);
+							pointQueue.add(pointToAdd);
+						}
+						
 					}
 				}
 			}
 		}
-		
 
 		return null;
 	}

@@ -1,16 +1,15 @@
 package roadgraph;
 
+import geography.GeographicPoint;
 
 /**
  * Wrapper for the {@link Node} to provide weighted value.
  * <br><br>
  * @author Lane Chasteen
  */
-public class PriorityNode {
+public class PriorityNode extends Node {
 	//-- properties --//
-	private final Node node;
 	private volatile double weight;
-	private final double length;
 	/**
 	 * Lock for {@link #weight}
 	 */
@@ -21,12 +20,27 @@ public class PriorityNode {
 	 * Creates a new PriorityNode.
 	 * @param node - {@link Node}.
 	 * @param weight - Calculated value from previous point up to this point.
-	 * @param length - The length from the starting point to the internal vertex.
 	 */
-	public PriorityNode(Node node, double weight, double length) {
-		this.node = node;
+	public PriorityNode(Node node, double weight) {
+		super(node);
 		this.weight = weight;
-		this.length = length;
+	}
+	
+	/**
+	 * Creates a new PriorityNode.
+	 * @param point - {@link GeographicPoint} to create from.
+	 */
+	public PriorityNode(GeographicPoint point) {
+		super(point.getX(), point.getY());
+		this.weight = -1;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param pn - {@link PriorityNode} to copy.
+	 */
+	public PriorityNode(PriorityNode pn) {
+		this(pn, pn.getWeight());
 	}
 
 	/**
@@ -42,17 +56,6 @@ public class PriorityNode {
 	}
 	
 	/**
-	 * Returns the distance in KM between the {@code vertex} and
-	 * the parent.
-	 * @return The distance in KM between the {@code vertex} and 
-	 * the parent.
-	 */
-	public double getLength() {
-		return length;
-	}
-
-	
-	/**
 	 * Sets the value for the distance calculated from previouse
 	 * reference point to this internal {@link Node} point.
 	 * @param newWeight - The new weight.
@@ -63,40 +66,19 @@ public class PriorityNode {
 		}
 	}
 
-	/**
-	 * Returns the {@link Node}.
-	 * @return The {@link Node}.
-	 */
-	public Node getNode() {
-		return node;
-	}
+//	/**
+//	 * Returns the {@link Node}.
+//	 * @return The {@link Node}.
+//	 */
+//	public Node getNode() {
+//		return node;
+//	}
 
 	//-- Object methods --//
 	@Override
 	public String toString() {
-		String result = "node: " + node + ", length: " + String.valueOf(length) + ", weight: " + weight;
+		String nodeStr = super.toString();
+		String result = "node: " + nodeStr + ", weight: " + weight;
 		return result;
-	}
-	
-	@Override
-	public int hashCode() {
-		long bits = java.lang.Double.doubleToLongBits(getWeight());
-		bits ^= java.lang.Double.doubleToLongBits(getLength()) * 31;
-		return (((int) bits) ^ ((int) (bits >> 32))) + node.hashCode();
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (o == this) {
-			return true;
-		}
-		if (!(o instanceof PriorityNode)) {
-			return false;
-		}
-
-		PriorityNode n = (PriorityNode) o;
-		return (Double.compare(n.getWeight(), getWeight()) == 0) 
-				&& (Double.compare(n.getLength(), getLength()) == 0)
-				&& node.equals(n.node);
 	}
 }
