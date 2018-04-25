@@ -47,8 +47,19 @@ public class Node {
 	 * @return The distance between this lat, lon point and the other point
 	 */
 	public static double distance(Node n1, Node n2) {
-		return GeographicPoint.getDist(n1.getLatitude(), n1.getLongitude(),
-				n2.getLatitude(), n2.getLongitude());     
+		int R = 6373; // radius of the earth in kilometres
+    	double lat1rad = Math.toRadians(n1.getLatitude());
+    	double lat2rad = Math.toRadians(n2.getLatitude());
+    	double deltaLat = Math.toRadians(n2.getLatitude()-n1.getLatitude());
+    	double deltaLon = Math.toRadians(n2.getLongitude()-n1.getLongitude());
+
+    	double a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+    	        Math.cos(lat1rad) * Math.cos(lat2rad) *
+    	        Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
+    	double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+    	double d = R * c;
+    	return d;
 	}
 	
 	/**
