@@ -443,12 +443,12 @@ public class MapGraph implements Graph {
 		// Loop until empty.
 		while (!pointQueue.isEmpty()) {
 			PriorityNode curr = pointQueue.remove();
-			System.out.println(String.valueOf(accum++) + " :---------------------" + curr) ;
+			System.out.println(String.valueOf(accum++) + " :---------------------" + curr);
 			
 			if (!visited.contains(curr)) {
 				visited.add(curr);
 				if (curr.equals(nGoal)) {
-					System.out.println(String.valueOf(accum++) + " :---------------------" + curr) ;
+					System.out.println(String.valueOf(accum++) + " :---------------------" + curr);
 					return getPathFromPriorityMap(parentMap, nStart, nGoal);
 				}
 				nodeSearched.accept(curr.getGeographicPoint());
