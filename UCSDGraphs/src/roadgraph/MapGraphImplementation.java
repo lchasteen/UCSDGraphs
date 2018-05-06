@@ -31,7 +31,7 @@ import util.GraphLoader;
  * @author UCSD MOOC development team
  * @author Lane Chasteen
  */
-public class MapGraph implements Graph {
+public class MapGraphImplementation implements Graph {
 	//-- properties --//
 	private final Map<PriorityNode, Set<Edge>> graph;
 	private int numVertices;
@@ -42,7 +42,7 @@ public class MapGraph implements Graph {
 	/** 
 	 * Create a new empty MapGraph 
 	 */
-	public MapGraph() {	
+	public MapGraphImplementation() {	
 		graph = new HashMap<>();
 		numVertices = 0;
 		numEdges = 0;
@@ -537,18 +537,18 @@ public class MapGraph implements Graph {
 	{
 		
 		
-		MapGraph theMap = new MapGraph();
-		System.out.print("DONE. \nLoading the map...");
-		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
-		System.out.println("DONE.");
-
-		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
-		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
-
-		List<GeographicPoint> route = theMap.dijkstra(start,end);
-		System.out.println(route.size());
-		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
-		System.out.println(route2.size());
+//		MapGraphImplementation theMap = new MapGraphImplementation();
+//		System.out.print("DONE. \nLoading the map...");
+//		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
+//		System.out.println("DONE.");
+//
+//		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+//		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
+//
+//		List<GeographicPoint> route = theMap.dijkstra(start,end);
+//		System.out.println(route.size());
+//		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
+//		System.out.println(route2.size());
 //		System.out.print("Making a new map...");
 //		MapGraph firstMap = new MapGraph();
 //		System.out.print("DONE. \nLoading the map...");
@@ -572,38 +572,38 @@ public class MapGraph implements Graph {
 		 * programming assignment.
 		 */
 		
-		MapGraph simpleTestMap = new MapGraph();
-		GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
-
-		GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
-		GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
-
-		System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
-		List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
-		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
-
-		System.out.println(testroute.size());
-		System.out.println(testroute2.size());
-
-		MapGraph testMap = new MapGraph();
-		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
-
-		// A very simple test using real data
-		testStart = new GeographicPoint(32.869423, -117.220917);
-		testEnd = new GeographicPoint(32.869255, -117.216927);
-		System.out.println("Test 2 using utc: Dijkstra should be 13 and AStar should be 5");
-		testroute = testMap.dijkstra(testStart,testEnd);
-		testroute2 = testMap.aStarSearch(testStart,testEnd);
-
-		System.out.println(testroute.size());
-		System.out.println(testroute2.size());
-
-		// A slightly more complex test using real data
-		testStart = new GeographicPoint(32.8674388, -117.2190213);
-		testEnd = new GeographicPoint(32.8697828, -117.2244506);
-		System.out.println("Test 3 using utc: Dijkstra should be 37 and AStar should be 10");
-		testroute = testMap.dijkstra(testStart,testEnd);
-		testroute2 = testMap.aStarSearch(testStart,testEnd);
+//		MapGraphImplementation simpleTestMap = new MapGraphImplementation();
+//		GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+//
+//		GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
+//		GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+//
+//		System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
+//		List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
+//		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+//
+//		System.out.println(testroute.size());
+//		System.out.println(testroute2.size());
+//
+//		MapGraphImplementation testMap = new MapGraphImplementation();
+//		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
+//
+//		// A very simple test using real data
+//		testStart = new GeographicPoint(32.869423, -117.220917);
+//		testEnd = new GeographicPoint(32.869255, -117.216927);
+//		System.out.println("Test 2 using utc: Dijkstra should be 13 and AStar should be 5");
+//		testroute = testMap.dijkstra(testStart,testEnd);
+//		testroute2 = testMap.aStarSearch(testStart,testEnd);
+//
+//		System.out.println(testroute.size());
+//		System.out.println(testroute2.size());
+//
+//		// A slightly more complex test using real data
+//		testStart = new GeographicPoint(32.8674388, -117.2190213);
+//		testEnd = new GeographicPoint(32.8697828, -117.2244506);
+//		System.out.println("Test 3 using utc: Dijkstra should be 37 and AStar should be 10");
+//		testroute = testMap.dijkstra(testStart,testEnd);
+//		testroute2 = testMap.aStarSearch(testStart,testEnd);
 		
 
 
