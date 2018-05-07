@@ -8,10 +8,10 @@
 package roadgraph;
 
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import geography.GeographicPoint;
+import util.GraphLoader;
 
 
 /**
@@ -75,16 +76,16 @@ public class MapGraph implements Graph {
 		return path;
 	}
 
-//	private Map<MapNode, Double> initializeAllToInfinity() {
-//		Map<MapNode,Double> distances = new HashMap<>();
-//
-//		Iterator<MapNode> iter = pointNodeMap.values().iterator();
-//		while (iter.hasNext()) {
-//			MapNode node = iter.next();
-//			distances.put(node, Double.POSITIVE_INFINITY);
-//		}
-//		return distances;
-//	}
+	//	private Map<MapNode, Double> initializeAllToInfinity() {
+	//		Map<MapNode,Double> distances = new HashMap<>();
+	//
+	//		Iterator<MapNode> iter = pointNodeMap.values().iterator();
+	//		while (iter.hasNext()) {
+	//			MapNode node = iter.next();
+	//			distances.put(node, Double.POSITIVE_INFINITY);
+	//		}
+	//		return distances;
+	//	}
 
 	/** 
 	 * Get a set of neighbor nodes from a mapNode
@@ -232,17 +233,11 @@ public class MapGraph implements Graph {
 
 		Queue<MapNode> pq = new PriorityQueue<>(10, new Comparator<MapNode>() {
 			public int compare(MapNode x, MapNode y) {
-				if (x.getStartDistance() < y.getStartDistance()) {
-					return -1;              
-				}               
-				if (x.getStartDistance() > y.getStartDistance()) {
-					return 1;
-				}
-				return 0;
+				return Double.compare(x.getStartDistance(), y.getStartDistance());
 			};
 		});
-		
-		
+
+
 		Map<MapNode, Double> nodeDistances = new HashMap<>();
 		// Initialize the distance map with infinity values.
 		for (MapNode n : pointNodeMap.values()) {
@@ -256,12 +251,13 @@ public class MapGraph implements Graph {
 		nodeDistances.put(startNode, Double.valueOf(0d));
 		pq.add(startNode);
 		MapNode curr = null;
-		
+		int accum = 1;
 		// Keep looping until empty.
 		while (!pq.isEmpty()) {
 			// Remove from queue.
 			curr = pq.remove();
-			System.out.println(curr.toString());
+			System.out.println("------------dijkstra [" + accum + "}" + curr.toString());
+			accum++;
 			// Only search non-visited nodes
 			if (!visited.contains(curr)){
 				visited.add(curr);
@@ -270,16 +266,15 @@ public class MapGraph implements Graph {
 				if (curr.equals(endNode)) {
 					return reconstructPath(parentMap, startNode, endNode);
 				}
-
-				Set<MapNode> neighbors = getNeighbors(curr);
-				for (MapNode neighbor : neighbors) {
+			
+				for (MapNode neighbor : getNeighbors(curr)) {
 					if (!visited.contains(neighbor) ){  
 
 						// Distance of the current node to the neighbor.
 						double currentToNeighbor = curr.getLocation().distance(neighbor.getLocation());
 						// Total
 						double total = curr.getStartDistance() + currentToNeighbor;
-						
+
 						// Check out the parent map for any key matches which equal the next neighbor.
 						// Check out the weight of any neighbors which have already been tracked but
 						// are not marked as visited. Only replace the weight if the current calculated
@@ -290,7 +285,6 @@ public class MapGraph implements Graph {
 							neighbor.setStartDistance(total);
 							// set parent
 							parentMap.put(neighbor, curr);
-							// enqueue
 							pq.add(neighbor);
 						}
 					}
@@ -298,6 +292,111 @@ public class MapGraph implements Graph {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns a {@link List} of {@link GeographicPoint}(s) with best route order considering
+	 * distances. Implementation of 2 opt algorithm.
+	 * @param vertices - {@link List} of {@link Geographic Point}(s) in route order with identical
+	 * start {@link GeographicPoint} as the first element and the start point as the last element.
+	 * @return {@link List} of {@link GeographicPoint}(s) with best route order considering
+	 * distances.
+	 */
+	public List<GeographicPoint> twoOpt(List<GeographicPoint> route) {
+		
+		List<GeographicPoint> vertices = new ArrayList<>(route);
+		// Get the current projected distance.
+		double totDist = getLength(vertices);
+		
+		List<GeographicPoint> bestRoute;
+		
+		double cDist;
+		int routeSwap = 1;
+		
+		while (routeSwap != 0) { //loop until no improvements are made.
+			routeSwap = 0;
+
+			// Outer Loop: 1 to size - 2 avoid start and end point
+			// Inner Loop: outer loop + 1 start to last vertex - 1.
+			for (int i = 1; i < vertices.size() - 2; i++) {
+				for (int j = i + 1; j < vertices.size() - 1; j++) {
+					double ab = vertices.get(i).distance(vertices.get(i - 1));
+					double cd = vertices.get(j + 1).distance(vertices.get(j));
+					double ac = vertices.get(i).distance(vertices.get(j + 1));
+					double bd = vertices.get(i - 1).distance(vertices.get(j));
+					// Check to see if route ac + bd is better than ab + cd
+					if ((ab + cd) >= (ac + bd)) {
+						// Reverse all from i to j
+						bestRoute = swap(i, j, vertices); 
+						
+						cDist = getLength(bestRoute);
+						// Is it better? If so then set the best route.
+						if (cDist < totDist) {
+							vertices = bestRoute;
+							totDist = cDist;
+							routeSwap++;
+						}
+					}
+				}
+			}
+		}
+		
+		return vertices;
+	}
+
+	/**
+	 * Swaps the vertices between {@code i} and {@code j}. Returns a {@link List}
+	 * of the results.
+	 * @param i - Start vertex.
+	 * @param j - End vertex.
+	 * @param vertices - {@link List} of {@link GeographicPoint}(s) to modify.
+	 * @return {@link List} of vertices with values swaped from i to j.
+	 */
+	private static List<GeographicPoint> swap( int i, int j, List<GeographicPoint> vertices) {
+		// Invert the order from i to j.
+		List<GeographicPoint> resultList = new ArrayList<>();
+
+		//**************** Start
+		// Add from start to i to the result list.
+		int size = vertices.size();
+		for (int start = 0; start <= i - 1; start++) {
+			resultList.add(vertices.get(start));
+		}
+		
+		//**************** Middle
+		// Invert
+		int counter = 0;
+		for (int mid = i; mid <= j; mid++) {
+			// reverse order j - counter
+			resultList.add(vertices.get(j - counter));
+			counter++;
+		}
+
+		//**************** End
+		// Add from j + 1 to the end
+		for (int end = j + 1; end < size; end++) {
+			resultList.add(vertices.get(end));
+		}
+
+		return resultList;
+	}
+
+	/**
+	 * Returns the projected total distance in Cartesian space from each vertex.
+	 * @param vertices - {@link GeographicPoint} vertex.
+	 * @return The projected total distance.
+	 */
+	private double getLength(List<GeographicPoint> vertices) {
+		double result = 0;
+		// Track the distance from last to first.
+		// Get the last point as the previous.
+		GeographicPoint p = vertices.get(vertices.size() - 1);
+		for (GeographicPoint gp : vertices) {
+			// distance of current to previous.
+			result += gp.distance(p);
+			p = gp;
+		}
+		return result;
 	}
 
 	@Override
@@ -318,17 +417,11 @@ public class MapGraph implements Graph {
 
 		Queue<MapNode> pq = new PriorityQueue<>(10, new Comparator<MapNode>() {
 			public int compare(MapNode x, MapNode y) {
-				if (x.getStartDistance() < y.getStartDistance()) {
-					return -1;              
-				}               
-				if (x.getStartDistance() > y.getStartDistance()) {
-					return 1;
-				}
-				return 0;
+				return Double.compare(x.getStartDistance(), y.getStartDistance());
 			};
 		});
-		
-		
+
+
 		Map<MapNode, Double> nodeDistances = new HashMap<>();
 		// Initialize the distance map with infinity values.
 		for (MapNode n : pointNodeMap.values()) {
@@ -342,12 +435,13 @@ public class MapGraph implements Graph {
 		nodeDistances.put(startNode, Double.valueOf(0d));
 		pq.add(startNode);
 		MapNode curr = null;
-		
+		int accum = 1;
 		// Keep looping until empty.
 		while (!pq.isEmpty()) {
 			// Remove from queue.
 			curr = pq.remove();
-			System.out.println(curr.toString());
+			System.out.println("------------A* [" + accum + "}" + curr.toString());
+			accum++;
 			// Only search non-visited nodes
 			if (!visited.contains(curr)){
 				visited.add(curr);
@@ -356,9 +450,7 @@ public class MapGraph implements Graph {
 				if (curr.equals(endNode)) {
 					return reconstructPath(parentMap, startNode, endNode);
 				}
-
-				Set<MapNode> neighbors = getNeighbors(curr);
-				for (MapNode neighbor : neighbors) {
+				for (MapNode neighbor :  getNeighbors(curr)) {
 					if (!visited.contains(neighbor) ){  
 
 						// Distance of neighbor to the end point.
@@ -367,7 +459,7 @@ public class MapGraph implements Graph {
 						double currentToNeighbor = curr.getLocation().distance(neighbor.getLocation());
 						// Total
 						double total = curr.getStartDistance() + currentToNeighbor + neighborToEnd;
-						
+
 						// Check out the parent map for any key matches which equal the next neighbor.
 						// Check out the weight of any neighbors which have already been tracked but
 						// are not marked as visited. Only replace the weight if the current calculated
@@ -379,7 +471,6 @@ public class MapGraph implements Graph {
 							neighbor.setPossibleDistanceToEnd(neighborToEnd);
 							// set parent
 							parentMap.put(neighbor, curr);
-							// enqueue
 							pq.add(neighbor);
 						}
 					}
@@ -412,6 +503,36 @@ public class MapGraph implements Graph {
 		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
 
 		 */
+
+
+		MapGraph simpleTestMap = new MapGraph();
+		GraphLoader.loadRoadMap("data/testdata/simpletest.map", simpleTestMap);
+
+		GeographicPoint testStart = new GeographicPoint(1.0, 1.0);
+		GeographicPoint testEnd = new GeographicPoint(8.0, -1.0);
+
+		System.out.println("Test 1 using simpletest: Dijkstra should be 9 and AStar should be 5");
+		List<GeographicPoint> testroute = simpleTestMap.dijkstra(testStart,testEnd);
+		List<GeographicPoint> testroute2 = simpleTestMap.aStarSearch(testStart,testEnd);
+
+
+		MapGraph testMap = new MapGraph();
+		GraphLoader.loadRoadMap("data/maps/utc.map", testMap);
+
+		// A very simple test using real data
+		testStart = new GeographicPoint(32.869423, -117.220917);
+		testEnd = new GeographicPoint(32.869255, -117.216927);
+		System.out.println("Test 2 using utc: Dijkstra should be 13 and AStar should be 5");
+		testroute = testMap.dijkstra(testStart,testEnd);
+		testroute2 = testMap.aStarSearch(testStart,testEnd);
+
+
+		// A slightly more complex test using real data
+		testStart = new GeographicPoint(32.8674388, -117.2190213);
+		testEnd = new GeographicPoint(32.8697828, -117.2244506);
+		System.out.println("Test 3 using utc: Dijkstra should be 37 and AStar should be 10");
+		testroute = testMap.dijkstra(testStart,testEnd);
+		testroute2 = testMap.aStarSearch(testStart,testEnd);
 
 	}
 
